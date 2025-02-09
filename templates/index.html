@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>分类</h2>
+    <ul>
+        {% for category in categories %}
+            <li><a href="{{ url_for('category', category_id=category.id) }}">{{ category.name }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('create_post') }}">发布新帖子</a>
+{% endblock %}

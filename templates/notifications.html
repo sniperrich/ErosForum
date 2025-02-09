@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>消息通知</h2>
+    <ul>
+        {% for notification in notifications %}
+            <li class="{% if not notification.is_read %}unread{% endif %}">
+                <a href="{{ url_for('mark_as_read', notification_id=notification.id) }}">
+                    {{ notification.message }}
+                    <small>{{ notification.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                </a>
+            </li>
+        {% else %}
+            <li>暂无新消息</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

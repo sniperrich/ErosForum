@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link
+      rel="stylesheet"
+      href="static/css/base.css"
+    />
+    <h2>{{ post.title }}</h2>
+<!--    <p>作者：{{ post.user.username }}</p>  &lt;!&ndash; 显示发帖人 &ndash;&gt;-->
+    <div>{{ post.content }}</div>
+    <img src="{{ post.user.get_avatar() }}"
+     class="post-avatar"
+     alt="{{ post.user.username }} 的头像">
+    <span>{{ post.user.username }}</span>
+<!-- 在帖子内容下方添加 -->
+{% if post.attachments %}
+<div class="attachments mt-4">
+    <h5>附件下载：</h5>
+    <ul class="list-group">
+        {% for file in post.attachments.split(',') %}
+        <li class="list-group-item">
+            <a href="{{ url_for('download_file', filename=file) }}" class="text-decoration-none">
+                <i class="fas fa-file-download"></i> {{ file }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+<div class="reply-buttons">
+    <button onclick="showReplyForm(null)" class="btn-reply-topic">回复帖子</button>
+</div>
+    <h3>回复</h3>
+    <!-- 递归显示回复的宏 -->
+    {% macro render_reply(reply, depth=0) %}
+        <div style="margin-left: {{ depth * 20 }}px; border-left: 2px solid #ccc; padding-left: 10px;" class="reply">
+            <img src="{{ post.user.get_avatar() }}"
+     class="post-avatar"
+     alt="{{ post.user.username }} 的头像">
+            <p>
+                {{ reply.user.username }}  <!-- 显示回复人 -->
+
+                <small>{{ reply.created_at }}</small>
+                <button onclick="setParentReply({{ reply.id }})">回复此条</button>
+            </p>
+            <p>{{ reply.content }}</p>
+
+            <!-- 递归显示子回复 -->
+            {% for child in reply.child_replies %}
+                {{ render_reply(child, depth + 1) }}
+            {% endfor %}
+        </div>
+    {% endmacro %}
+
+    {% for reply in replies %}
+        {{ render_reply(reply) }}
+    {% endfor %}
+
+    <h4>发表回复</h4>
+    <form method="POST" id="replyForm" style="display: none;">
+    {{ form.hidden_tag() }}
+    <input type="hidden" name="parent_reply_id" id="parentReplyId">
+
+    {{ form.content.label }}
+    {{ form.content(rows=3) }}
+
+    <button type="submit" class="btn-submit">提交回复</button>
+    <button type="button" onclick="hideReplyForm()" class="btn-cancel">取消</button>
+</form>
+
+
+    <!-- 添加JavaScript处理回复按钮 -->
+    <script>
+        function setParentReply(replyId) {
+            document.getElementById('parent_reply_id').value = replyId;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
+<script>
+// 显示回复表单的函数
+function showReplyForm(parentId) {
+    document.getElementById('parentReplyId').value = parentId || '';
+    document.getElementById('replyForm').style.display = 'block';
+    window.scrollTo({
+        top: document.getElementById('replyForm').offsetTop - 50,
+        behavior: 'smooth'
+    });
+}
+
+// 隐藏表单
+function hideReplyForm() {
+    document.getElementById('replyForm').style.display = 'none';
+    document.getElementById('parentReplyId').value = '';
+}
+</script>
+{% endblock %}
